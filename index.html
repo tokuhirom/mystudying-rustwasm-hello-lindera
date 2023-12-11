@@ -1,47 +1,49 @@
 <!-- 参考：https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_wasm-->
 <!DOCTYPE html>
-<html>
+<html lang="ja">
   <head>
     <meta charset="utf-8">
     <title>calling-lindera example</title>
   </head>
   <body>
-    <h1>Lindera WASM example</h1>
-    <!-- 入力フォーム -->
+    <h1>Lindera WASM example(IPADIC)</h1>
     <form id="form1" action="#">
-      <input type="text" id="input-message">
-      <!-- イベントで引っ掛けるためのid -->
-      <p id = "b1">
-        <input type="button" value="Lindera">
+      <label for="input-message">Text:</label><input type="text" id="input-message">
+      <p id="b1">
+        <input type="submit" value="Lindera">
       </p>
     </form>
-    <!-- 後で追記するリスト -->
+
     <ul id="resultList">
     </ul>
-    <!-- JavaScript、moduleじゃないとimportが動かない -->
+
     <script type="module">
-      import init, {greet} from "./pkg/calling_lindera.js";
-      // ボタンクリックでWASMの関数を呼ぶ
-      b1.onclick = function() {
+      import init, {analyze} from "./pkg/calling_lindera.js";
+      document.getElementById("form1").onsubmit = function(event) {
+        event.preventDefault(); // Prevent the form from being submitted to the server
         const textbox = document.getElementById("input-message");
         const inputValue = textbox.value;
-        // どうもinitが必須みたい、Promiseが関連してるらしい
         init()
           .then(() => {
-            // greetはRust内で定義したやつ
-            let fragments = greet(inputValue);
-            // デバッグ用
-            // console.log(fragments);
-            // for文の代わり
-            fragments.forEach( ( flagment, index ) => {
-              // デバッグ用
-              // console.log(flagment.text)
-              var li = document.createElement('li');
-              li.textContent = flagment.text;
-              document.getElementById('resultList').appendChild(li);
+            let fragments = analyze(inputValue);
+            fragments.reverse().forEach( ( flagment ) => {
+              const pre = document.createElement('pre');
+              pre.textContent = JSON.stringify(flagment, null, 2);
+              document.getElementById('resultList').prepend(pre);
             });
+
+            const hr = document.createElement('hr');
+            document.getElementById('resultList').prepend(hr);
           });
       }
     </script>
+    <style>
+      pre {
+        float: left;
+      }
+      hr {
+        clear: both;
+      }
+    </style>
   </body>
 </html>

@@ -1,19 +1,54 @@
 extern crate serde_json;
-use lindera::tokenizer::Tokenizer;
-use lindera_core::core::viterbi::Mode;
+
+use lindera_analyzer::analyzer::Analyzer;
+use serde_json::json;
 use wasm_bindgen::prelude::*;
 
 
 #[wasm_bindgen]
-pub fn greet(text: &str) -> JsValue {
+pub fn analyze(text: &str) -> Result<JsValue, JsValue> {
+    let analyzer = Analyzer::from_value(&json!({
+  "character_filters": [
+    {
+      "kind": "unicode_normalize",
+      "args": {
+        "kind": "nfkc"
+      }
+    },
+    {
+      "kind": "japanese_iteration_mark",
+      "args": {
+        "normalize_kanji": true,
+        "normalize_kana": true
+      }
+    }
+  ],
+  "tokenizer": {
+    "dictionary": {
+      "kind": "ipadic"
+    },
+    "mode": "normal"
+  },
+  "token_filters": [
+    {
+      "kind": "japanese_katakana_stem",
+      "args": {
+        "min": 3
+      }
+    }
+  ]
+        })).unwrap();
 
-    // create tokenizer
-    let mut tokenizer = Tokenizer::new(Mode::Normal, "");
+    println!("text: {}", text);
 
     // tokenize the text
-    let tokens = tokenizer.tokenize(&text);
+    let tokens = match analyzer.analyze(&text) {
+      Ok(o) => { o}
+      Err(e) => {
+        return Err(serde_wasm_bindgen::to_value(&format!("Lindera error: {:?}", e))?)
+      }
+    };
 
     // JSに対応した戻り値を返すので
-    JsValue::from_serde(&tokens).unwrap()
-
+    Ok(serde_wasm_bindgen::to_value(&tokens)?)
 }
