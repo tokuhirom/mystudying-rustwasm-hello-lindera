@@ -19,13 +19,45 @@
 
     <script type="module">
       import init, {analyze} from "./pkg/calling_lindera.js";
+
+      const config = {
+        "character_filters": [
+            {
+              "kind": "unicode_normalize",
+              "args": {
+                "kind": "nfkc"
+              }
+            },
+            {
+              "kind": "japanese_iteration_mark",
+              "args": {
+                "normalize_kanji": true,
+                "normalize_kana": true
+              }
+            }
+          ],
+          "tokenizer": {
+            "dictionary": {
+              "kind": "ipadic"
+            },
+            "mode": "normal"
+          },
+          "token_filters": [
+            {
+              "kind": "japanese_katakana_stem",
+              "args": {
+                "min": 3
+              }
+            }
+        ]
+      };
       document.getElementById("form1").onsubmit = function(event) {
         event.preventDefault(); // Prevent the form from being submitted to the server
         const textbox = document.getElementById("input-message");
         const inputValue = textbox.value;
         init()
           .then(() => {
-            let fragments = analyze(inputValue);
+            let fragments = analyze(inputValue, JSON.stringify(config));
             fragments.reverse().forEach( ( flagment ) => {
               const pre = document.createElement('pre');
               pre.textContent = JSON.stringify(flagment, null, 2);
