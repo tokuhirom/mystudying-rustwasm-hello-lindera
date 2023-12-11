@@ -1,0 +1,14 @@
+{
+  "name": "calling-lindera",
+  "version": "0.1.0",
+  "files": [
+    "calling_lindera_bg.wasm",
+    "calling_lindera.js",
+    "calling_lindera.d.ts"
+  ],
+  "module": "calling_lindera.js",
+  "types": "calling_lindera.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
